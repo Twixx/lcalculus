@@ -152,57 +152,66 @@ let yyact = [|
 # 153 "parser.ml"
                : Ast.rule))
 ; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : Ast.term) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : Ast.term) in
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : string list -> Ast.term) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : string list -> Ast.term) in
     Obj.repr(
 # 43 "parser.mly"
-                 (Judgement(_1, _3))
+                 (Judgement(_1 [], _3 []))
 # 161 "parser.ml"
                : Ast.judgement))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 2 : string) in
-    let _4 = (Parsing.peek_val __caml_parser_env 0 : Ast.term) in
+    let _4 = (Parsing.peek_val __caml_parser_env 0 : string list -> Ast.term) in
     Obj.repr(
 # 47 "parser.mly"
-                         (Abstraction(_2, _4))
-# 169 "parser.ml"
-               : Ast.term))
+                         (
+          fun ctx -> let new_ctx = _2::ctx in 
+          Abstraction(_4 new_ctx)
+        )
+# 172 "parser.ml"
+               : string list -> Ast.term))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'app) in
     Obj.repr(
-# 48 "parser.mly"
+# 51 "parser.mly"
                         (_1)
-# 176 "parser.ml"
-               : Ast.term))
+# 179 "parser.ml"
+               : string list -> Ast.term))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'app) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'value) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'id) in
     Obj.repr(
-# 52 "parser.mly"
-                    (Application(_1, _2))
-# 184 "parser.ml"
+# 55 "parser.mly"
+                 (fun ctx -> Application(_1 ctx, _2 ctx))
+# 187 "parser.ml"
                : 'app))
 ; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : 'value) in
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : 'id) in
     Obj.repr(
-# 53 "parser.mly"
-                    (_1)
-# 191 "parser.ml"
+# 56 "parser.mly"
+                 (_1)
+# 194 "parser.ml"
                : 'app))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 57 "parser.mly"
-                                (Id(_1))
-# 198 "parser.ml"
-               : 'value))
+# 60 "parser.mly"
+         (
+              let rec lookup n ctx = match ctx with
+                  | [] -> Ast.FreeId(_1)
+                  | h::t -> if h = _1 then BoundedId(n)
+                            else lookup (n+1) t
+              in lookup 0
+         )
+# 207 "parser.ml"
+               : 'id))
 ; (fun __caml_parser_env ->
-    let _2 = (Parsing.peek_val __caml_parser_env 1 : Ast.term) in
+    let _2 = (Parsing.peek_val __caml_parser_env 1 : string list -> Ast.term) in
     Obj.repr(
-# 58 "parser.mly"
+# 67 "parser.mly"
                                 (_2)
-# 205 "parser.ml"
-               : 'value))
+# 214 "parser.ml"
+               : 'id))
 (* Entry expr *)
 ; (fun __caml_parser_env -> raise (Parsing.YYexit (Parsing.peek_val __caml_parser_env 0)))
 |]

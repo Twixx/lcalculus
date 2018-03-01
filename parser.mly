@@ -19,7 +19,7 @@
 %type <Ast.expr> expr
 %type <Ast.rule> rule
 %type <Ast.judgement> judgement
-%type <Ast.term> term
+%type <string list -> Ast.term> term
 
 %%
 
@@ -40,22 +40,29 @@ rule:
     ;
 
 judgement:
-    term IS term {Judgement($1, $3)}
+    term IS term {Judgement($1 [], $3 [])}
     ;
 
 term:
-      LAMBDA ID DOT term {Abstraction($2, $4)}
+      LAMBDA ID DOT term {
+          fun ctx -> let new_ctx = $2::ctx in 
+          Abstraction($4 new_ctx)
+        }
     | app               {$1}
     ;
 
 app:
-    app value       {Application($1, $2)}
-    | value         {$1}
+    app id       {fun ctx -> Application($1 ctx, $2 ctx)}
+    | id         {$1}
     ;
 
-value:
-      ID                        {Id($1)}
+id:
+      ID {
+              let rec lookup n ctx = match ctx with
+                  | [] -> Ast.FreeId($1)
+                  | h::t -> if h = $1 then BoundedId(n)
+                            else lookup (n+1) t
+              in lookup 0
+         }
     | LPAREN term RPAREN        {$2}
-
-
-
+    ;
