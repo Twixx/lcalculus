@@ -1,6 +1,8 @@
-type rule = APP1 | APP2 | APPABS
 
 type context = string list
+
+type rule_name = APP1 | APP2 | APPABS | APPFULL
+type rule = Rule of rule_name * context
 
 type term = FreeId of string
           | BoundedId of int

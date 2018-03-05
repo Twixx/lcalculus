@@ -2,9 +2,9 @@
         open Parser        (* The type token is defined in parser.mli *)
         open Lexing
         open Parsing
-        exception Eof
         exception LexErr of string
         exception ParseErr of string
+        exception Eof
 
         let error msg start finish  = 
             Printf.sprintf "(line %d: char %d..%d): %s" start.pos_lnum 
@@ -22,9 +22,10 @@ rule token = parse
           | "->"                { IS }
           | "by"                { BY }
           | ';'                 { SEMI }
-          | "E-App1"            { RULEAPP1 }
-          | "E-App2"            { RULEAPP2 }
-          | "E-AppAbs"          { RULEAPPABS }
+          | "E-App1"            { RULENAME APP1 }
+          | "E-App2"            { RULENAME APP2 }
+          | "E-AppAbs"          { RULENAME APPABS }
+          | "E-AppFull"         { RULENAME APPFULL }
           | ['a'-'z']+ as id    { ID id }
           | '{'                 { LBRA }
           | '}'                 { RBRA }

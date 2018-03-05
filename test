@@ -1,3 +1,3 @@
-((\x.x) x) ((\x.x) y) -> x ((\x.x) y) by E-App1 {
+(\x.(\y.y) x) -> (\y.y) by E-AppFull(z) {
     (\y.y) x -> x by E-AppAbs {}
 }

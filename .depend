@@ -1,0 +1,13 @@
+ast.cmo :
+ast.cmx :
+checker.cmo : ast.cmo
+checker.cmx : ast.cmx
+dotgraph.cmo : ast.cmo
+dotgraph.cmx : ast.cmx
+lexer.cmo : parser.cmi
+lexer.cmx : parser.cmx
+main.cmo : parser.cmi lexer.cmo dotgraph.cmo checker.cmo
+main.cmx : parser.cmx lexer.cmx dotgraph.cmx checker.cmx
+parser.cmo : ast.cmo parser.cmi
+parser.cmx : ast.cmx parser.cmi
+parser.cmi : ast.cmo

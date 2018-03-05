@@ -1,4 +1,4 @@
-SOURCES = ast.ml lexer.mll parser.mly main.ml
+SOURCES = ast.ml checker.ml dotgraph.ml lexer.mll parser.mly main.ml 
 
 EXEC = checker
 
@@ -6,7 +6,7 @@ CAMLC = ocamlc
 CAMLOPT = ocamlopt
 CAMLDEP = ocamldep
 CAMLLEX = ocamllex
-CAMLYACC = ocamlyacc
+CAMLYACC = menhir
 
 all: depend $(EXEC)
 opt : $(EXEC).opt
