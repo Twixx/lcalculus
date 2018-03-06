@@ -18,7 +18,7 @@
 
 expr:
     e1 = judgement BY e2 = rule LBRA e3 = expr_list RBRA
-    { Expr(e1, e2, e3) }
+    { Expr(e1, e2, e3, $startpos) }
     ;
 
 expr_list:
@@ -31,22 +31,20 @@ expr_list:
     ;
 
 rule:
-    name = RULENAME LPAREN ctx = ID+ RPAREN
-    { Rule(name, ctx) }
-    | name = RULENAME
-    { Rule(name, []) }
+    name = RULENAME
+    { Rule(name, $startpos) }
     ;
 
 judgement:
     e1 = term IS e2 = term
-    { Judgement(e1 [], e2 []) }
+    { Judgement(e1 [], e2 [], $startpos) }
     ;
 
 term:
     LAMBDA id = ID DOT t = term
     { 
           fun ctx -> let new_ctx = id::ctx in 
-          Abstraction(t new_ctx)
+          Abstraction(t new_ctx, $startpos)
      }
     | e = app
     { e }
@@ -55,8 +53,8 @@ term:
 app:
     e1 = app e2 = id
     { 
-        fun ctx -> Application(e1 ctx, e2 ctx)
-     }
+        fun ctx -> Application(e1 ctx, e2 ctx, $startpos)
+    }
     | e = id
     { e }
     ;
@@ -66,8 +64,8 @@ id:
     { 
         let rec lookup n ctx =
             match ctx with
-            | [] -> Ast.FreeId(id)
-            | h::t -> if h = id then BoundedId(n)
+            | [] -> Ast.FreeId(id, $startpos)
+            | h::t -> if h = id then BoundedId(n, $startpos)
                       else lookup (n+1) t
         in lookup 0
     }

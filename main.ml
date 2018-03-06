@@ -9,4 +9,5 @@ let _ =
         (*print_graph result;*)
         check_deriv result
     with Lexer.Eof ->
+        print_string "End of file reached\n";
         exit 0

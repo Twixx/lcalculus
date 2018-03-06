@@ -1,10 +1,10 @@
 {
         open Parser        (* The type token is defined in parser.mli *)
+        exception Eof
         open Lexing
         open Parsing
         exception LexErr of string
         exception ParseErr of string
-        exception Eof
 
         let error msg start finish  = 
             Printf.sprintf "(line %d: char %d..%d): %s" start.pos_lnum 
@@ -33,5 +33,5 @@ rule token = parse
           | '.'                 { DOT }
           | '('                 { LPAREN }
           | ')'                 { RPAREN }
-          | eof                 { raise Eof }
-          | _                   { lex_error lexbuf }
+          (*| eof                 { raise Eof }
+          | _                   { lex_error lexbuf }*)
