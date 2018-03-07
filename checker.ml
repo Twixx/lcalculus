@@ -1,18 +1,19 @@
 open Ast
 
+(* functions to check the number of premises *)
 let check_premise1 rule exprs =
     match exprs with
-    | [Expr(p,_,_,_)] -> p
-    | _ -> raise (Premise_num_error(1,rule))
+    | [Expr(p, _, _, _)] -> p
+    | _ -> raise (Premise_num_error(1, rule))
 
 let check_premise0 rule exprs =
     if exprs <> [] then
-        raise (Premise_num_error(0,rule))
+        raise (Premise_num_error(0, rule))
 
 let check_app2 judg premise =
-    let Judgement(l,r,p) = judg in
+    let Judgement(l, r, p) = judg in
     match l, r with
-    | Application(Abstraction _ as v1, t2, _), Application(Abstraction _ as v1', t2',_)
+    | Application(Abstraction _ as v1, t2, _), Application(Abstraction _ as v1', t2', _)
     | Application(FreeId _ as v1, t2, _), Application(FreeId _ as v1', t2', _) ->
             let Judgement(j1, j1', p2) = premise in
             if term_ne v1 v1' || term_ne t2 j1 || term_ne t2' j1' then
@@ -20,20 +21,19 @@ let check_app2 judg premise =
     | _, _ -> raise (Conclusion_error p)
 
 let check_app1 judg premise =
-    let Judgement(l,r,p) = judg in
+    let Judgement(l, r, p) = judg in
     match l, r with
-    | Application(t1, t2, p), Application(t1', t2',_) ->
+    | Application(t1, t2, p), Application(t1', t2', _) ->
             let Judgement(j1, j1', p2) = premise in
                 if term_ne t2 t2' || term_ne t1 j1 || term_ne t1' j1' then
                 raise (Pattern_error(p, p2))
     | _, _ -> raise (Conclusion_error p)
 
-
 let substitute term v =
     let rec substitute' term v n = 
     match term with
     | Application(t1, t2, p) -> Application(substitute' t1 v n, substitute' t2 v n, p)
-    | Abstraction(t,p) -> Abstraction(substitute' t v (n+1), p)
+    | Abstraction(t, p) -> Abstraction(substitute' t v (n+1), p)
     | BoundedId(id, _) when id = n -> v
     | _ as v -> v
     in substitute' term v 0
@@ -46,32 +46,39 @@ let check_appabs judg =
       when term_eq (substitute t1 v2) t2 -> ()
     | _, _ -> raise (Conclusion_error p)
 
+(* Lookup the ast and the term
+ * Check that they are structurally equal
+ * Check that all occurrences of the nameless representation
+ * of the name bounded in ast match a free variable and are
+ * not in conflict with the current candidate
+ * *)
+
 let bind_id abs term candidate =
     let rec bind_id' n abs term (candidate : freeid option) =
         match abs, term with
         | Abstraction(t, p), Abstraction(t', _) ->
                 bind_id' (n+1) t t' candidate
-        | Application(t1, t2, p), Application(t1',t2', _) ->
+        | Application(t1, t2, p), Application(t1', t2', _) ->
                 let c1 = bind_id' n t1 t1' candidate in
                 bind_id' n t2 t2' c1
-        | BoundedId(id, p), FreeId(id2, p2) when id = n->
+        | BoundedId(id, p), FreeId(id2, p2) when id = n ->
                 (match candidate with
                  | None -> Some(id2, p2)
-                 | Some((idc,_)) when idc = id2 -> candidate
-                 | Some((idc,pc)) -> raise (Candidate_error((id2, p2), (idc,pc))))
+                 | Some((idc, _)) when idc = id2 -> candidate
+                 | Some((idc, pc)) -> raise (Candidate_error((id2, p2), (idc, pc))))
         | BoundedId(id, p), BoundedId(id2, _) when id = id2 ->
                 candidate
-        | FreeId(s,p), FreeId(s2, _) when s = s2 ->
+        | FreeId(s, p), FreeId(s2, _) when s = s2 ->
                 candidate
         | _, _ -> raise (Pattern_error(term_info abs, term_info term))
     in bind_id' 0 abs term candidate
 
 
 let check_appfull judg premise =
-    let Judgement(l,r,p) = judg in
+    let Judgement(l, r, p) = judg in
     match l, r with
-    | Abstraction(t1,_), Abstraction(t1',_) ->
-            let Judgement(j1, j1',_) = premise in
+    | Abstraction(t1, _), Abstraction(t1', _) ->
+            let Judgement(j1, j1', _) = premise in
             let c1 = bind_id t1 j1 None in
             let _ = bind_id t1' j1' c1 in ()
     | _, _ -> raise (Conclusion_error p)
@@ -79,7 +86,7 @@ let check_appfull judg premise =
 let rec check_deriv ast =
     try
         match ast with
-        | Expr(judg, (Rule(rule,_) as r), exprs, _) ->
+        | Expr(judg, (Rule(rule, _) as r), exprs, _) ->
                 (match rule with
                 | APP1 ->
                         check_app1 judg (check_premise1 r exprs)

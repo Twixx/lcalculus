@@ -17,28 +17,28 @@ let print_node label p_id =
         
 let rec print_term p_id term =
     match term with
-        | FreeId(s,_) ->
+        | FreeId(s, _) ->
             let _ = print_node ("free id : " ^ s) p_id in ()
-        | BoundedId(int_id,_) ->
+        | BoundedId(int_id, _) ->
             let _ = print_node ("bounded id : " ^ (string_of_int int_id)) p_id in ()
-        | Abstraction(t1,_) ->
+        | Abstraction(t1, _) ->
             let current = print_node ("abs") p_id in
             print_term current t1
-        | Application(t1,t2,_) ->
+        | Application(t1, t2, _) ->
             let current = print_node "app" p_id in
             print_term current t1;
             print_term current t2
             
 let print_judg p_id judg =
     match judg with
-    Judgement(t1,t2,_) ->
+    Judgement(t1, t2, _) ->
         let current = print_node "judg" p_id in
         print_term current t1;
         print_term current t2
 
 let rec print_tree p_id expr =
     match expr with 
-    Expr(judg,_,exprs,_) ->
+    Expr(judg, _, exprs, _) ->
         let current = print_node "expr" p_id in
         print_judg current judg;
         List.iter (print_tree current) exprs

@@ -43,10 +43,10 @@ let rule_name = function
     | APPFULL -> "E-AppFull"
 
 let term_info = function
-    | FreeId(_,i)
-    | BoundedId(_,i)
-    | Abstraction(_,i)
-    | Application(_,_,i) -> i
+    | FreeId(_, i)
+    | BoundedId(_, i)
+    | Abstraction(_, i)
+    | Application(_, _, i) -> i
 
 let string_of_info info =
     "at line: " ^ (string_of_int info.pos_lnum)

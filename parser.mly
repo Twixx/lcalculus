@@ -43,9 +43,9 @@ judgement:
 term:
     LAMBDA id = ID DOT t = term
     { 
-          fun ctx -> let new_ctx = id::ctx in 
+          fun ctx -> let new_ctx = id :: ctx in
           Abstraction(t new_ctx, $startpos)
-     }
+    }
     | e = app
     { e }
     ;
@@ -65,7 +65,7 @@ id:
         let rec lookup n ctx =
             match ctx with
             | [] -> Ast.FreeId(id, $startpos)
-            | h::t -> if h = id then BoundedId(n, $startpos)
+            | h :: t -> if h = id then BoundedId(n, $startpos)
                       else lookup (n+1) t
         in lookup 0
     }

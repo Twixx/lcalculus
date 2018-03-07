@@ -33,5 +33,5 @@ rule token = parse
           | '.'                 { DOT }
           | '('                 { LPAREN }
           | ')'                 { RPAREN }
-          (*| eof                 { raise Eof }
-          | _                   { lex_error lexbuf }*)
+          | eof                 { raise Eof }
+          | _                   { lex_error lexbuf }
