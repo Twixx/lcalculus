@@ -5,6 +5,9 @@
 %token DOT
 %token IS
 %token SEMI
+%token EQ
+%token IN
+%token LET
 %token <string> ID
 %token <Ast.rule_name> RULENAME
 
@@ -41,7 +44,17 @@ judgement:
     ;
 
 term:
-    LAMBDA id = ID DOT t = term
+    LET id = ID EQ a = abs IN t = term
+    {
+          fun ctx -> let new_ctx = id :: ctx in
+          LetBind(a ctx, t new_ctx, $startpos)
+    }
+    | a = abs
+    { a }
+    ;
+
+abs:
+    LAMBDA id = ID DOT t = abs
     { 
           fun ctx -> let new_ctx = id :: ctx in
           Abstraction(t new_ctx, $startpos)
@@ -69,6 +82,6 @@ id:
                       else lookup (n+1) t
         in lookup 0
     }
-    | LPAREN e = term RPAREN
+    | LPAREN e = abs RPAREN
     { e }
     ;

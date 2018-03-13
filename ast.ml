@@ -3,11 +3,12 @@ open Lexing
 type context = string list
 type info = position
 
-type rule_name = APP1 | APP2 | APPABS | APPFULL
+type rule_name = APP1 | APP2 | APPABS | APPFULL | LET1 |  LET2 | LETABS
 type rule = Rule of rule_name * info
 
 type freeid = string * info
-type term = FreeId of freeid
+type term = LetBind of term * term * info
+          | FreeId of freeid
           | BoundedId of int * info
           | Abstraction of term * info
           | Application of term * term * info
@@ -23,6 +24,8 @@ exception Candidate_error of freeid * freeid
 
 let rec term_eq t1 t2 =
     match t1, t2 with
+    | LetBind(a1, v1, _), LetBind(a2, v2, _) ->
+            term_eq a1 a2 && term_eq v1 v2
     | FreeId(s1, _), FreeId(s2, _) ->
             s1 = s2
     | BoundedId(i1, _), BoundedId(i2, _) ->
@@ -41,12 +44,16 @@ let rule_name = function
     | APP2 -> "E-App2"
     | APPABS -> "E-AppAbs"
     | APPFULL -> "E-AppFull"
+    | LET1 -> "E-Let1"
+    | LET2 -> "E-Let2"
+    | LETABS -> "E-LetAbs"
 
 let term_info = function
     | FreeId(_, i)
     | BoundedId(_, i)
     | Abstraction(_, i)
     | Application(_, _, i) -> i
+    | LetBind(_, _, i) -> i
 
 let string_of_info info =
     "at line: " ^ (string_of_int info.pos_lnum)

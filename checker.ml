@@ -20,12 +20,31 @@ let check_app2 judg premise =
                 raise (Pattern_error(p, p2))
     | _, _ -> raise (Conclusion_error p)
 
+let check_let2 judg premise =
+    let Judgement(l, r, p) = judg in
+    match l, r with
+    | LetBind(Abstraction _ as a, t, _), LetBind(Abstraction _ as a', t', _)
+    | LetBind(FreeId _ as a, t, _), LetBind(FreeId _ as a', t', _) ->
+            let Judgement(j, j', p2) = premise in
+            if term_ne a a' || term_ne t j || term_ne t' j' then
+                raise (Pattern_error(p, p2))
+    | _, _ -> raise (Conclusion_error p)
+
 let check_app1 judg premise =
     let Judgement(l, r, p) = judg in
     match l, r with
     | Application(t1, t2, p), Application(t1', t2', _) ->
             let Judgement(j1, j1', p2) = premise in
                 if term_ne t2 t2' || term_ne t1 j1 || term_ne t1' j1' then
+                raise (Pattern_error(p, p2))
+    | _, _ -> raise (Conclusion_error p)
+
+let check_let1 judg premise =
+    let Judgement(l, r, p) = judg in
+    match l, r with
+    | LetBind(a, t, p), LetBind(a', t', _) ->
+            let Judgement(j, j', p2) = premise in
+                if term_ne t t' || term_ne a j || term_ne a' j' then
                 raise (Pattern_error(p, p2))
     | _, _ -> raise (Conclusion_error p)
 
@@ -44,6 +63,14 @@ let check_appabs judg =
     | Application(Abstraction(t1, _), (Abstraction _ as v2), _), t2
     | Application(Abstraction(t1, _), (FreeId _ as v2), _), t2
       when term_eq (substitute t1 v2) t2 -> ()
+    | _, _ -> raise (Conclusion_error p)
+
+let check_letabs judg =
+    let Judgement(l, r, p) = judg in
+    match l, r with
+    | LetBind((Abstraction _ as a), t, _), t'
+    | LetBind((FreeId _ as a), t, _), t'
+      when term_eq (substitute t a) t' -> ()
     | _, _ -> raise (Conclusion_error p)
 
 (* Lookup the ast and the term
@@ -96,7 +123,14 @@ let rec check_deriv ast =
                         check_premise0 r exprs;
                         check_appabs judg
                 | APPFULL ->
-                        check_appfull judg (check_premise1 r exprs));
+                        check_appfull judg (check_premise1 r exprs)
+                | LET1 ->
+                        check_let1 judg (check_premise1 r exprs)
+                | LET2 ->
+                        check_let2 judg (check_premise1 r exprs)
+                | LETABS ->
+                        check_premise0 r exprs;
+                        check_letabs judg);
                 check_premises exprs
     with
     | Conclusion_error p -> 

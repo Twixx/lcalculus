@@ -28,6 +28,10 @@ let rec print_term p_id term =
             let current = print_node "app" p_id in
             print_term current t1;
             print_term current t2
+        | LetBind(a, t, _) ->
+            let current = print_node "let" p_id in
+            print_term current a;
+            print_term current t
             
 let print_judg p_id judg =
     match judg with

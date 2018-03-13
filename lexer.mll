@@ -21,12 +21,18 @@ rule token = parse
             [' ' '\t' '\n']     { token lexbuf }     (* skip blanks *)
           | "->"                { IS }
           | "by"                { BY }
-          | ';'                 { SEMI }
+          | "let"               { LET }
+          | "in"                { IN }
           | "E-App1"            { RULENAME APP1 }
           | "E-App2"            { RULENAME APP2 }
           | "E-AppAbs"          { RULENAME APPABS }
           | "E-AppFull"         { RULENAME APPFULL }
+          | "E-Let1"            { RULENAME LET1 }
+          | "E-Let2"            { RULENAME LET2 }
+          | "E-LetAbs"          { RULENAME LETABS }
           | ['a'-'z']+ as id    { ID id }
+          | ';'                 { SEMI }
+          | '='                 { EQ }
           | '{'                 { LBRA }
           | '}'                 { RBRA }
           | '\\'                { LAMBDA }
