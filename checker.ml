@@ -20,15 +20,7 @@ let check_app2 judg premise =
                 raise (Pattern_error(p, p2))
     | _, _ -> raise (Conclusion_error p)
 
-let check_let2 judg premise =
-    let Judgement(l, r, p) = judg in
-    match l, r with
-    | LetBind(Abstraction _ as a, t, _), LetBind(Abstraction _ as a', t', _)
-    | LetBind(FreeId _ as a, t, _), LetBind(FreeId _ as a', t', _) ->
-            let Judgement(j, j', p2) = premise in
-            if term_ne a a' || term_ne t j || term_ne t' j' then
-                raise (Pattern_error(p, p2))
-    | _, _ -> raise (Conclusion_error p)
+
 
 let check_app1 judg premise =
     let Judgement(l, r, p) = judg in
@@ -78,6 +70,8 @@ let check_letabs judg =
  * Check that all occurrences of the nameless representation
  * of the name bounded in ast match a free variable and are
  * not in conflict with the current candidate
+ * Check that all the free variables in ast are different from
+ * the current candidate which should be bounded.
  * *)
 
 let bind_id abs term candidate =
@@ -96,7 +90,9 @@ let bind_id abs term candidate =
         | BoundedId(id, p), BoundedId(id2, _) when id = id2 ->
                 candidate
         | FreeId(s, p), FreeId(s2, _) when s = s2 ->
-                candidate
+                (match candidate with
+                | Some(idc, pc) when idc = s -> raise (Candidate_error((idc, pc), (s, p)))
+                | _ -> candidate)
         | _, _ -> raise (Pattern_error(term_info abs, term_info term))
     in bind_id' 0 abs term candidate
 
@@ -108,6 +104,18 @@ let check_appfull judg premise =
             let Judgement(j1, j1', _) = premise in
             let c1 = bind_id t1 j1 None in
             let _ = bind_id t1' j1' c1 in ()
+    | _, _ -> raise (Conclusion_error p)
+
+let check_let2 judg premise =
+    let Judgement(l, r, p) = judg in
+    match l, r with
+    | LetBind(Abstraction _ as a, t, _), LetBind(Abstraction _ as a', t', _)
+    | LetBind(FreeId _ as a, t, _), LetBind(FreeId _ as a', t', _) ->
+            let Judgement(j, j', p2) = premise in
+            let c1 = bind_id t j None in
+            let _ = bind_id t' j' c1 in
+            if term_ne a a' then
+                raise (Pattern_error(p, p2))
     | _, _ -> raise (Conclusion_error p)
 
 let rec check_deriv ast =
@@ -146,7 +154,7 @@ let rec check_deriv ast =
     | Candidate_error((s1, p1), (s2, p2)) ->
         print_string
         ("The name of the candidate (\"" ^ s1 ^ "\", " ^ (string_of_info p1) ^ ") for the bounded name of the expression " ^
-        " doesn't match the (\"" ^ s2 ^ "\", " ^ (string_of_info p2) ^ ")\n")
+        "doesn't match the (\"" ^ s2 ^ "\", " ^ (string_of_info p2) ^ "), or should be bounded in this expression.\n")
 
     and check_premises exprs =
         match exprs with

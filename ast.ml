@@ -57,5 +57,5 @@ let term_info = function
 
 let string_of_info info =
     "at line: " ^ (string_of_int info.pos_lnum)
-    ^ ", col: " ^ (string_of_int info.pos_cnum)
+    ^ ", col: " ^ (string_of_int (info.pos_cnum - info.pos_bol))
 
